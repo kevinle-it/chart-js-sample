@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hwaseung Vina Vietnam Production by Region Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<canvas id="myChart" width="70%" height="45%"></canvas>
+<script>
+    updateChart();
+
+    setInterval(function () {
+        updateChart();
+    }, 60000);
+
+    function updateChart() {
+        $(document).ready(function () {
+            var obj = new Object();
+            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
+            obj.ObjectName = ['production_by_re_vn'];
+            $.ajax({
+                type: 'POST',
+                url: 'http://smart.hsvina.com/proxy/Metric/Get',
+                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "production_by_re_vn" ]}',
+                success: function (data) {
+                    var chartData = data.Result.production_by_re_vn.value.metric_1;
+
+                    // Our labels along the x-axis
+                    var companyLabels = ['HSVN', 'CC1', 'CC2', 'LT', 'RG', 'VT'];
+
+                    // For drawing the bars
+                    var target = [
+                        chartData[0][0], chartData[0][1], chartData[0][2],
+                        chartData[0][3], chartData[0][4], chartData[0][5]
+                    ];
+                    var actual = [
+                        chartData[1][0], chartData[1][1], chartData[1][2],
+                        chartData[1][3], chartData[1][4], chartData[1][5]
+                    ];
+
+                    var minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
+
+                    buildNewBarChart(companyLabels, target, actual, minMaxTicksYAxesConfig);
+                },
+                contentType: "application/json",
+                dataType: 'json'
+            });
+        });
+    }
+
+    function buildNewBarChart(companyLabels, target, actual, minMaxTicksYAxesConfig) {
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            title: {
+                display: false,
+            },
+            data: {
+                labels: companyLabels,
+                datasets: [
+                    {
+                        data: target,
+                        label: 'Target',
+                        borderColor: '#fff',
+                        backgroundColor: '#fff',
+                    },
+                    {
+                        data: actual,
+                        label: 'Actual',
+                        borderColor: '#ca4a3d',
+                        backgroundColor: '#ca4a3d',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    display: true,
+                    labels: {
+                        fontColor: 'rgb(176, 175, 175)',
+                    },
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function (tooltipItem, data) {
+                            var currentYValue = tooltipItem.yLabel;
+                            return data.datasets[tooltipItem.datasetIndex].label + ': '
+                                + addThousandsSeparatorTo(currentYValue, ',');  // "label: 123,456"
+                        },
+                    },
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                        },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 0,
+                            fontColor: 'rgb(176, 175, 175)',
+                            padding: 5,
+                        },
+                    }],
+                    yAxes: [{
+                        gridLines: {
+                            color: '#454749',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            min: minMaxTicksYAxesConfig.min,
+                            max: minMaxTicksYAxesConfig.max,
+                            fontColor: '#fff',
+                            padding: 10,
+                            callback: function (value, index, values) {
+                                if (value < 1000) {
+                                    return value;
+                                } else if (value < 1000000) {
+                                    return value / 1000 + 'K';
+                                } else if (value < 1000000000) {
+                                    return value / 1000000 + 'M';
+                                }
+                                return value / 1000000000 + 'B';
+                            },
+                        },
+                    }],
+                },
+            },
+        });
+    }
+
+    // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
+    // (1...9) -> (1...9) + 1
+    // (10...99) -> (10...99) + 10
+    // (100...999) -> (100...999) + 100
+    // (1000...9999) -> (1000...9999) + 1000
+    // (10000...99999) -> (10000...99999) + 1000
+    // (100000...999999) -> (100000...999999) + 100000
+    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
+        var min = Number.MAX_SAFE_INTEGER, max = 0;
+        arrays.map(array => array.map(value => {
+            if (value < min) {
+                min = value;
+            }
+            if (value > max) {
+                max = value;
+            }
+        }));
+        var numOfDigits = max.toString().length;
+        var factor = 1;
+        for (var i = 1; i < numOfDigits; ++i) {
+            factor *= 10;
+        }
+        var maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+
+        if (isComputeMinTick) {
+            return {
+                min: min,
+                max: maxTickOnYAxes,
+            };
+        }
+        return {
+            min: 0,
+            max: maxTickOnYAxes,
+        };
+    }
+
+    // Example: 123456789 -> 123,456,789
+    function addThousandsSeparatorTo(number, separatorSign) {
+        var separatedNum = number.toString();
+
+        var count = 1;
+        for (var i = separatedNum.length - 1; i >= 0 ; --i) {
+            if (count === 3 && i !== 0) {
+                count = 0;
+                separatedNum = separatedNum.slice(0, i) + separatorSign.toString() + separatedNum.slice(i);
+            }
+            ++count;
+        }
+        // return number.toLocaleString();
+        return separatedNum;
+    }
+</script>
+</body>
+</html>

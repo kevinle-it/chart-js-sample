@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hwaseung Vina Factory 3 Balance Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style>
+        body {
+            font-family: Helvetica Neue, Arial, sans-serif;
+            text-align: center;
+        }
+
+        #myChart {
+            background: #2c3034;
+        }
+    </style>
+</head>
+<body>
+<canvas id="myChart"></canvas>
+<script>
+    updateChart();
+
+    setInterval(function () {
+        updateChart();
+    }, 60000);
+
+    function updateChart() {
+        $(document).ready(function () {
+            var obj = new Object();
+            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
+            obj.ObjectName = ['Fac3_balances'];
+            $.ajax({
+                type: 'POST',
+                url: 'http://smart.hsvina.com/proxy/Metric/Get',
+                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "Fac3_balances" ]}',
+                success: function (data) {
+                    var chartData = data.Result.Fac3_balances.value.metric_1;
+
+                    // Our labels along the x-axis
+                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+
+                    // For drawing the line
+                    var balances = [];
+                    for (var i = chartData.length - 1; i >= 0; --i) {
+                        balances.push(chartData[i]);
+                    }
+
+                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, balances);
+
+                    buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig);
+                },
+                contentType: "application/json",
+                dataType: 'json',
+            });
+        });
+    }
+
+    function buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig) {
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dayLabels,
+                datasets: [{
+                    label: 'balance',
+                    data: balances,
+                    borderColor: '#ffda49',
+                    borderWidth: 5,
+                    pointRadius: 8,
+                    pointBorderWidth: 3.5,
+                    pointBackgroundColor: '#ffda49',
+                    pointBorderColor: '#fff',
+                    fill: false,
+                    tension: 0,
+                }],
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    display: false,
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function (tooltipItem, data) {
+                            return "";
+                        },
+                        label: function (tooltipItem, data) {
+                            var currentYValue = tooltipItem.yLabel;
+                            return addThousandsSeparatorTo(currentYValue, ',');
+                        },
+                    },
+                    backgroundColor: '#f1493b',
+                    bodyFontColor: '#fff',
+                    bodyFontSize: 17,
+                    xPadding: 10,
+                    yPadding: 10,
+                    caretPadding: 10,
+                    displayColors: false,
+                    xAlign: 'center',
+                    yAlign: 'bottom',
+                },
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            minRotation: 0,
+                            maxRotation: 90,
+                            autoSkip: false,
+                            fontColor: '#fff',
+                            padding: 10,
+                        },
+                        gridLines: {
+                            display: false,
+                            color: '#525559',
+                        },
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            min: minMaxTickYAxesConfig.min,
+                            max: minMaxTickYAxesConfig.max,
+                            fontColor: 'rgb(208, 209, 210)',
+                            padding: 10,
+                            callback: function (value, index, values) {
+                                if (value < 1000) {
+                                    return value;
+                                } else if (value < 1000000) {
+                                    return value / 1000 + 'K';
+                                } else if (value < 1000000000) {
+                                    return value / 1000000 + 'M';
+                                }
+                                return value / 1000000000 + 'B';
+                            },
+                        },
+                        gridLines: {
+                            color: '#525559',
+                        },
+                    }],
+                },
+            },
+        });
+    }
+
+    // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
+    // (1...9) -> (1...9) + 1
+    // (10...99) -> (10...99) + 10
+    // (100...999) -> (100...999) + 100
+    // (1000...9999) -> (1000...9999) + 1000
+    // (10000...99999) -> (10000...99999) + 1000
+    // (100000...999999) -> (100000...999999) + 100000
+    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
+        var min = Number.MAX_SAFE_INTEGER, max = 0;
+        arrays.map(array => array.map(value => {
+            if (value < min) {
+                min = value;
+            }
+            if (value > max) {
+                max = value;
+            }
+        }));
+        var numOfDigits = max.toString().length;
+        var factor = 1;
+        for (var i = 1; i < numOfDigits; ++i) {
+            factor *= 10;
+        }
+        var maxTickOnYAxes = factor * 2 + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+
+        if (isComputeMinTick) {
+            return {
+                min: min,
+                max: maxTickOnYAxes,
+            };
+        }
+        return {
+            min: 0,
+            max: maxTickOnYAxes,
+        };
+    }
+
+    // Example: 123456789 -> 123,456,789
+    function addThousandsSeparatorTo(number, separatorSign) {
+        var separatedNum = number.toString();
+
+        var count = 1;
+        for (var i = separatedNum.length - 1; i >= 0; --i) {
+            if (count === 3 && i !== 0) {
+                count = 0;
+                separatedNum = separatedNum.slice(0, i) + separatorSign.toString() + separatedNum.slice(i);
+            }
+            ++count;
+        }
+        // return number.toLocaleString();
+        return separatedNum;
+    }
+</script>
+</body>
+</html>

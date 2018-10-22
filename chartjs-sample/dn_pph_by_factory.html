@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hwaseung Vina Dong Nai PPH by Factory Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style>
+        body {
+            font-family: Helvetica Neue, Arial, sans-serif;
+            text-align: center;
+            background-color: #cccccc;
+        }
+
+        .wrapper {
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <canvas id="myChart" width="70%" height="45%"></canvas>
+</div>
+<script>
+    updateChart();
+
+    setInterval(function () {
+        updateChart();
+    }, 60000);
+
+    function updateChart() {
+        $(document).ready(function () {
+            var obj = new Object();
+            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
+            obj.ObjectName = ['Factory_pph'];
+            $.ajax({
+                type: 'POST',
+                url: 'http://smart.hsvina.com/proxy/Metric/Get',
+                data: '{"SiteID":"6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "Factory_pph" ]}',
+                success: function (data) {
+                    var chartData = data.Result.Factory_pph.value.metric_1;
+
+                    // Our labels along the x-axis
+                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+
+                    // For drawing the lines
+                    var Fac1 = [
+                        chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
+                        chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
+                    ];
+                    var Fac2 = [
+                        chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
+                        chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
+                    ];
+                    var Fac3 = [
+                        chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
+                        chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
+                    ];
+                    var Fac5 = [
+                        chartData[3][0], chartData[3][1], chartData[3][2], chartData[3][3],
+                        chartData[3][4], chartData[3][5], chartData[3][6], chartData[3][7]
+                    ];
+                    var FacDS = [
+                        chartData[4][0], chartData[4][1], chartData[4][2], chartData[4][3],
+                        chartData[4][4], chartData[4][5], chartData[4][6], chartData[4][7]
+                    ];
+
+                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, Fac1, Fac2, Fac3, Fac5, FacDS);
+
+                    buildNewLineChart(dayLabels, Fac1, Fac2, Fac3, Fac5, FacDS, minMaxTickYAxesConfig);
+                },
+                contentType: "application/json",
+                dataType: 'json',
+            });
+        });
+    }
+
+    function buildNewLineChart(dayLabels, Fac1, Fac2, Fac3, Fac5, FacDS, minMaxTickYAxesConfig) {
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dayLabels,
+                datasets: [
+                    {
+                        data: Fac1,
+                        label: 'Fac1',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#807fff',
+                        backgroundColor: '#807fff',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: Fac2,
+                        label: 'Fac2',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#f9f6f7',
+                        backgroundColor: '#f9f6f7',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: Fac3,
+                        label: 'Fac3',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#54cc8e',
+                        backgroundColor: '#54cc8e',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: Fac5,
+                        label: 'Fac5',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#e74c3c',
+                        backgroundColor: '#e74c3c',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: FacDS,
+                        label: 'FacDS',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#abc',
+                        backgroundColor: '#abc',
+                        fill: false,
+                        tension: 0,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                        fontColor: '#777c80',
+                    },
+                },
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            minRotation: 0,
+                            maxRotation: 90,
+                            autoSkip: false,
+                            fontColor: '#fff',
+                        },
+                        gridLines: {
+                            display: false,
+                        },
+                    }],
+                    yAxes: [{
+                        gridLines: {
+                            color: '#454749',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            min: minMaxTickYAxesConfig.min,
+                            max: minMaxTickYAxesConfig.max,
+                            stepSize: 1,
+                            fontColor: '#fff',
+                            callback: function (value, index, values) {
+                                if (value < 1000) {
+                                    return value;
+                                } else if (value < 1000000) {
+                                    return value / 1000 + 'K';
+                                } else if (value < 1000000000) {
+                                    return value / 1000000 + 'M';
+                                }
+                                return value / 1000000000 + 'B';
+                            },
+                        },
+                    }],
+                },
+            },
+        });
+    }
+
+    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
+        var min = Number.MAX_SAFE_INTEGER, max = 0;
+        arrays.map(array => array.map(value => {
+            if (value < min) {
+                min = value;
+            }
+            if (value > max) {
+                max = value;
+            }
+        }));
+
+        var maxTickOnYAxes = Math.ceil(max) + 1;
+
+        if (isComputeMinTick) {
+            return {
+                min: min,
+                max: maxTickOnYAxes,
+            };
+        }
+        return {
+            min: 0,
+            max: maxTickOnYAxes,
+        };
+    }
+</script>
+</body>
+</html>

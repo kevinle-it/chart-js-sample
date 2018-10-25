@@ -45,9 +45,11 @@
                         balances.push(chartData[i]);
                     }
 
-                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, balances);
+                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(true, balances);
 
-                    buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig);
+                    var stepSize = computeStepSize(minMaxTickYAxesConfig);
+
+                    buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig, stepSize);
                 },
                 contentType: "application/json",
                 dataType: 'json',
@@ -55,7 +57,7 @@
         });
     }
 
-    function buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig) {
+    function buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig, stepSize) {
         var ctx = document.getElementById('myChart');
         var myChart = new Chart(ctx, {
             type: 'line',
@@ -117,6 +119,7 @@
                         ticks: {
                             min: minMaxTickYAxesConfig.min,
                             max: minMaxTickYAxesConfig.max,
+                            stepSize: stepSize,
                             fontColor: 'rgb(208, 209, 210)',
                             padding: 10,
                             callback: function (value, index, values) {
@@ -156,21 +159,81 @@
                 max = value;
             }
         }));
-        var numOfDigits = max.toString().length;
-        var factor = 1;
-        for (var i = 1; i < numOfDigits; ++i) {
-            factor *= 10;
+        // Max Tick
+        var numOfDigitsMax = 1;
+        if (max % 1 === 0) {
+            numOfDigitsMax = max.toString().length;
+        } else {
+            numOfDigitsMax = Math.round(max).toString().length;
         }
-        var maxTickOnYAxes = factor * 2 + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+
+        var factorMax = 1;
+        for (var i = 1; i < numOfDigitsMax; ++i) {
+            factorMax *= 10;
+        }
+
+        // Plus 5[0000..] then round up to 0.5
+        // ----------Start----------
+        var maxTickOnYAxes = max + (factorMax / 2); // 258,628 -> 258,628 + 50,000
+
+        var numOfDigitsMaxTick = 1;
+        if (maxTickOnYAxes % 1 === 0) {
+            numOfDigitsMaxTick = maxTickOnYAxes.toString().length;
+        } else {
+            numOfDigitsMaxTick = Math.round(maxTickOnYAxes).toString().length;
+        }
+        var factorMaxTick = 1;
+        for (i = 1; i < numOfDigitsMaxTick; ++i) {
+            factorMaxTick *= 10;
+        }
+        var decimalMaxTick = maxTickOnYAxes / factorMaxTick;
+        var temp = Math.floor(decimalMaxTick);
+        var fractionalPartOfDecimalMaxTick = decimalMaxTick - temp;
+
+        if (fractionalPartOfDecimalMaxTick === 0) {
+            maxTickOnYAxes = (Math.ceil((decimalMaxTick + 0.1) * 2) / 2) * factorMaxTick;
+        } else if (fractionalPartOfDecimalMaxTick < 0.5) {
+            maxTickOnYAxes = (Math.ceil(decimalMaxTick * 2) / 2) * factorMaxTick;
+        } else {
+            maxTickOnYAxes = Math.round(decimalMaxTick) * factorMaxTick;
+        }
+        // ----------End----------
+
+        // Min Tick
+        // Minus 5[0000..] then round down to 0.5
+        // ----------Start----------
+        var minTickOnYAxes = min - (factorMax / 2); // 76,679 -> 76,679 - 50,000 (max = 256,628; factorMax = 100000)
+
+
+        var numOfDigitsMinTick = 1;
+        if (minTickOnYAxes % 1 === 0) {
+            numOfDigitsMinTick = minTickOnYAxes.toString().length;
+        } else {
+            numOfDigitsMinTick = Math.round(minTickOnYAxes).toString().length;
+        }
+        var factorMinTick = 1;
+        for (i = 1; i < numOfDigitsMinTick; ++i) {
+            factorMinTick *= 10;
+        }
+
+        var decimalMinTick = minTickOnYAxes / factorMinTick;
+        temp = Math.floor(decimalMinTick);
+        var fractionalPartOfDecimalMinTick = decimalMinTick - temp;
+
+        if (fractionalPartOfDecimalMinTick > 0.5) {
+            minTickOnYAxes = (Math.floor(decimalMinTick * 2) / 2) * factorMinTick;
+        } else {
+            minTickOnYAxes = Math.round(decimalMinTick) * factorMinTick;
+        }
 
         if (isComputeMinTick) {
             return {
-                min: min,
+                min: minTickOnYAxes >= 0 ? minTickOnYAxes : 0,
                 max: maxTickOnYAxes,
             };
         }
         return {
-            min: 0,
+            min: min,
             max: maxTickOnYAxes,
         };
     }
@@ -189,6 +252,11 @@
         }
         // return number.toLocaleString();
         return separatedNum;
+    }
+
+    function computeStepSize(minMaxTickYAxesConfig) {
+        var diff = minMaxTickYAxesConfig.max - minMaxTickYAxesConfig.min;
+        return diff % 5 === 0 ? diff / 5 : diff / 10;
     }
 </script>
 </body>

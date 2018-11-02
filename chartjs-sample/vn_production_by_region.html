@@ -36,14 +36,21 @@
                     var companyLabels = ['HSVN', 'CC1', 'CC2', 'LT', 'RG', 'VT'];
 
                     // For drawing the bars
-                    var target = [
-                        chartData[0][0], chartData[0][1], chartData[0][2],
-                        chartData[0][3], chartData[0][4], chartData[0][5]
-                    ];
-                    var actual = [
-                        chartData[1][0], chartData[1][1], chartData[1][2],
-                        chartData[1][3], chartData[1][4], chartData[1][5]
-                    ];
+                    var target = [], actual = [];
+                    for (var i = 0; i < chartData.length; ++i) {
+                        switch (i) {
+                            case 0:
+                                for (var j = 0; j < chartData[i].length; ++j) {
+                                    target.push(chartData[i][j] === null ? 0 : chartData[i][j]);
+                                }
+                                break;
+                            case 1:
+                                for (var k = 0; k < chartData[i].length; ++k) {
+                                    actual.push(chartData[i][k] === null ? 0 : chartData[i][k]);
+                                }
+                                break;
+                        }
+                    }
 
                     var minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
 

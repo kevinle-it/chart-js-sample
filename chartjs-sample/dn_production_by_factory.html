@@ -30,24 +30,24 @@
                 url: 'http://smart.hsvina.com/proxy/Metric/Get',
                 data: '{"SiteID":"6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "dn_production_by_re" ]}',
                 success: function (data) {
-                    var graphData = data.Result.dn_production_by_re.value.metric_1;
+                    var chartData = data.Result.dn_production_by_re.value.metric_1;
 
                     // Our labels along the x-axis
                     var companyLabels = [];
 
                     // For drawing the bars
                     var target = [], actual = [];
-                    graphData.map(factoryItem => {
-                        for (var j = 0; j < factoryItem.length; ++j) {
-                            switch (j) {
+                    chartData.map(factoryItem => {
+                        for (var i = 0; i < factoryItem.length; ++i) {
+                            switch (i) {
                                 case 0:
-                                    companyLabels.push(factoryItem[j]);
+                                    companyLabels.push(factoryItem[i]);
                                     break;
                                 case 1:
-                                    target.push(factoryItem[j] === null ? 0 : factoryItem[j]);
+                                    target.push(factoryItem[i] === null ? 0 : factoryItem[i]);
                                     break;
                                 case 2:
-                                    actual.push(factoryItem[j] === null ? 0 : factoryItem[j]);
+                                    actual.push(factoryItem[i] === null ? 0 : factoryItem[i]);
                                     break;
                             }
                         }

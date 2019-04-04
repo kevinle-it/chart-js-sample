@@ -66,6 +66,7 @@
                 }],
                 yAxes: [{
                     ticks: {
+                        min: 0,
                         fontColor: '#fff',
                         padding: 10,
                     },
@@ -77,41 +78,25 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = ['FacDS_Qty_By_Hour/data'];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let dataResponse = ['// Tien Data Response from Server goes here'];
-
-            // Tien Edit logic here to have chartData array for drawing Chart
-            // ---------- START ----------
-            let chartData = [];
-            dataResponse.map((value, index) => {
-                chartData.push({x: timeLabels[index], y: value});
-            });
-            // Remove trailing 0 (zero) data
-            for (let i = chartData.length - 1; i >= 0; --i) {
-                if (chartData[i].y === 0) {
-                    chartData.pop();
-                } else {
-                    break;
-                }
-            }
-            // ---------- END ----------
-
-            let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, chartData.map(item => +item.y));
-
-            // Labels along the x-axis
-            let labels = chartData.map(item => moment(item.x, 'H:mm'));
-
             // For drawing the line
-            let dataToShow = chartData.map(item => +item.y);
+            let quantity = [];
+
+            timeLabels.forEach((_, index) => {
+                quantity.push(res[objName[0]].value.metric[`HOUR_${index + 1}`]);
+            });
+            let labels = timeLabels.map(timestamp => moment(timestamp, 'H:mm'));
+
+            let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, quantity);
 
             myChart.data = {
                 labels: labels,
                 datasets: [{
                     label: 'quantity',
-                    data: dataToShow,
+                    data: quantity,
                     pointRadius: 0.5,
                     borderColor: '#ed4940',
                     backgroundColor: '#ed494040',

@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="wrapper">
-    <canvas id="myChart" width="70%" height="45%"></canvas>
+    <canvas id="myChart" width="70%" height="42%"></canvas>
 </div>
 <script>
     // Labels along the x-axis
@@ -108,6 +108,7 @@
                         drawBorder: false,
                     },
                     ticks: {
+                        min: 0,
                         stepSize: 1,
                         fontColor: '#fff',
                         callback: function (value, index, values) {
@@ -126,33 +127,48 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = [
+        'Factory_pph/FAC1',
+        'Factory_pph/FAC2',
+        'Factory_pph/FAC3',
+        'Factory_pph/FAC5',
+        'Factory_pph/FACDS'
+    ];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // For drawing the lines
-            let Fac1 = [
-                chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
-                chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
-            ];
-            let Fac2 = [
-                chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
-                chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
-            ];
-            let Fac3 = [
-                chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
-                chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
-            ];
-            let Fac5 = [
-                chartData[3][0], chartData[3][1], chartData[3][2], chartData[3][3],
-                chartData[3][4], chartData[3][5], chartData[3][6], chartData[3][7]
-            ];
-            let FacDS = [
-                chartData[4][0], chartData[4][1], chartData[4][2], chartData[4][3],
-                chartData[4][4], chartData[4][5], chartData[4][6], chartData[4][7]
-            ];
+            let Fac1 = [], Fac2 = [], Fac3 = [], Fac5 = [], FacDS = [];
+
+            objName.forEach(name => {
+                switch (res[name].value.metric.FACTORY_CODE) {
+                    case 'FAC1':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            Fac1.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        break;
+                    case 'FAC2':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            Fac2.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        break;
+                    case 'FAC3':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            Fac3.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        break;
+                    case 'FAC5':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            Fac5.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        break;
+                    case 'FACDS':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            FacDS.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        break;
+                }
+            });
 
             let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, Fac1, Fac2, Fac3, Fac5, FacDS);
 

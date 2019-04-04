@@ -78,6 +78,7 @@
                 }],
                 yAxes: [{
                     ticks: {
+                        min: 0,
                         fontColor: 'rgb(208, 209, 210)',
                         padding: 10,
                         callback: function (value, index, values) {
@@ -99,17 +100,16 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = ['Fac5_balances/data'];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // For drawing the line
             let balances = [];
-            for (let i = chartData.length - 1; i >= 0; --i) {
-                balances.push(chartData[i]);
+            for (let i = dayLabels.length - 1; i >= 1; --i) {
+                balances.push(res[objName[0]].value.metric[`DAY${i}`])
             }
+            balances.push(res[objName[0]].value.metric['TODAY']);
 
             let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(true, balances);
 

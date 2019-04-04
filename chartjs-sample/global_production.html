@@ -81,21 +81,30 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = [
+        'Global_Pro_T_A/ACTUAL_QTY',
+        'Global_Pro_T_A/TARGET_QTY'
+    ];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // For drawing the lines
-            let target = [
-                chartData[0][7], chartData[0][6], chartData[0][5], chartData[0][4],
-                chartData[0][3], chartData[0][2], chartData[0][1], chartData[0][0]
-            ];
-            let actual = [
-                chartData[1][7], chartData[1][6], chartData[1][5], chartData[1][4],
-                chartData[1][3], chartData[1][2], chartData[1][1], chartData[1][0]
-            ];
+            let target = [], actual = [];
+
+            objName.forEach(name => {
+                switch (res[name].value.metric.GROUP_NUMBER) {
+                    case 'TARGET_QTY':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            target.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        break;
+                    case 'ACTUAL_QTY':
+                        for (let i = dayLabels.length - 1; i >= 0; --i) {
+                            actual.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        break;
+                }
+            });
 
             let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
 

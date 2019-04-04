@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-<canvas id="myChart" width="70%" height="45%"></canvas>
+<canvas id="myChart" width="70%" height="42%"></canvas>
 <script>
     // Draw default chart
     const ctx = document.getElementById('myChart');
@@ -22,16 +22,16 @@
             display: false,
         },
         data: {
-            labels: ['// Tien Default Company Labels goes here'],
+            labels: ['Fac.1', 'Fac.2', 'Fac.3', 'Fac.5', 'Fac.DS'],
             datasets: [
                 {
-                    data: ['// Tien Default Target Data goes here'],
+                    data: [0, 0, 0, 0, 0],
                     label: 'Target',
                     borderColor: '#fff',
                     backgroundColor: '#fff',
                 },
                 {
-                    data: ['// Tien Default Actual Data goes here'],
+                    data: [0, 0, 0, 0, 0],
                     label: 'Actual',
                     borderColor: '#ca4a3d',
                     backgroundColor: '#ca4a3d',
@@ -73,6 +73,7 @@
                         drawBorder: false,
                     },
                     ticks: {
+                        min: 0,
                         fontColor: '#fff',
                         padding: 10,
                         callback: function (value, index, values) {
@@ -91,37 +92,39 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = [
+        'dn_production_by_re/Fac.1',
+        'dn_production_by_re/Fac.2',
+        'dn_production_by_re/Fac.3',
+        'dn_production_by_re/Fac.5',
+        'dn_production_by_re/Fac.DS'
+    ];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // Labels along the x-axis
-            let companyLabels = [];
-
+            let factoryLabels = [];
             // For drawing the bars
             let target = [], actual = [];
-            chartData.map(factoryItem => {
-                for (let i = 0; i < factoryItem.length; ++i) {
-                    switch (i) {
-                        case 0:
-                            companyLabels.push(factoryItem[i]);
-                            break;
-                        case 1:
-                            target.push(factoryItem[i] === null ? 0 : factoryItem[i]);
-                            break;
-                        case 2:
-                            actual.push(factoryItem[i] === null ? 0 : factoryItem[i]);
-                            break;
-                    }
-                }
+
+            objName.forEach(name => {
+                factoryLabels.push(res[name].value.metric.FACTORY_NAME);
+                target.push(
+                    res[name].value.metric.TARGET_QTY == null
+                        ? 0
+                        : res[name].value.metric.TARGET_QTY
+                );
+                actual.push(
+                    res[name].value.metric.ACTUAL_QTY == null
+                        ? 0
+                        : res[name].value.metric.ACTUAL_QTY
+                );
             });
 
             let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
 
             myChart.data = {
-                labels: companyLabels,
+                labels: factoryLabels,
                 datasets: [
                     {
                         data: target,

@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="wrapper">
-    <canvas id="myChart" width="70%" height="50%"></canvas>
+    <canvas id="myChart" width="70%" height="42%"></canvas>
 </div>
 <script>
     /*
@@ -102,21 +102,21 @@
                 },
                 {
                     data: [0, 0, 0, 0, 0, 0, 0, 0],
-                    label: 'Vietnam',
-                    pointRadius: 0.5,
-                    pointStyle: 'rect',
-                    borderColor: '#f9f6f7',
-                    backgroundColor: '#f9f6f7',
-                    fill: false,
-                    tension: 0,
-                },
-                {
-                    data: [0, 0, 0, 0, 0, 0, 0, 0],
                     label: 'Indonesia',
                     pointRadius: 0.5,
                     pointStyle: 'rect',
                     borderColor: '#54cc8e',
                     backgroundColor: '#54cc8e',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Vietnam',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#f9f6f7',
+                    backgroundColor: '#f9f6f7',
                     fill: false,
                     tension: 0,
                 },
@@ -160,27 +160,41 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = [
+        'global_eff_data/CHINA',
+        'global_eff_data/INDO',
+        'global_eff_data/VN'
+    ];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // For drawing the lines
-            let China = [
-                chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
-                chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
-            ];
-            let Vietnam = [
-                chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
-                chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
-            ];
-            let Indonesia = [
-                chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
-                chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
-            ];
+            let China = [], Vietnam = [], Indonesia = [];
 
-            let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, China, Vietnam, Indonesia);
+            objName.forEach(name => {
+                switch (res[name].value.metric.COMPANYCODE) {
+                    case 'CHINA':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            China.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        China.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'INDO':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            Indonesia.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        Indonesia.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'VN':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            Vietnam.push(res[name].value.metric[`DAY${i}`]);
+                        }
+                        Vietnam.push(res[name].value.metric['TODAY']);
+                        break;
+                }
+            });
+
+            let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, China, Indonesia, Vietnam);
 
             let stepSize = computeStepSize(minMaxTickYAxesConfig.max);
 
@@ -198,22 +212,22 @@
                         tension: 0,
                     },
                     {
-                        data: Vietnam,
-                        label: 'Vietnam',
-                        pointRadius: 0.5,
-                        pointStyle: 'rect',
-                        borderColor: '#f9f6f7',
-                        backgroundColor: '#f9f6f7',
-                        fill: false,
-                        tension: 0,
-                    },
-                    {
                         data: Indonesia,
                         label: 'Indonesia',
                         pointRadius: 0.5,
                         pointStyle: 'rect',
                         borderColor: '#54cc8e',
                         backgroundColor: '#54cc8e',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: Vietnam,
+                        label: 'Vietnam',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#f9f6f7',
+                        backgroundColor: '#f9f6f7',
                         fill: false,
                         tension: 0,
                     },

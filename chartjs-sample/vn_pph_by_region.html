@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="wrapper">
-    <canvas id="myChart" width="70%" height="45%"></canvas>
+    <canvas id="myChart" width="70%" height="42%"></canvas>
 </div>
 <script>
     // Labels along the x-axis
@@ -37,6 +37,16 @@
                     pointStyle: 'rect',
                     borderColor: '#807fff',
                     backgroundColor: '#807fff',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Chang Chun',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#52d8d8',
+                    backgroundColor: '#52d8d8',
                     fill: false,
                     tension: 0,
                 },
@@ -62,31 +72,21 @@
                 },
                 {
                     data: [0, 0, 0, 0, 0, 0, 0, 0],
-                    label: 'Vung Tau',
-                    pointRadius: 0.5,
-                    pointStyle: 'rect',
-                    borderColor: '#ca4a3d',
-                    backgroundColor: '#ca4a3d',
-                    fill: false,
-                    tension: 0,
-                },
-                {
-                    data: [0, 0, 0, 0, 0, 0, 0, 0],
-                    label: 'Chang Chun',
-                    pointRadius: 0.5,
-                    pointStyle: 'rect',
-                    borderColor: '#52d8d8',
-                    backgroundColor: '#52d8d8',
-                    fill: false,
-                    tension: 0,
-                },
-                {
-                    data: [0, 0, 0, 0, 0, 0, 0, 0],
                     label: 'Rach Gia',
                     pointRadius: 0.5,
                     pointStyle: 'rect',
                     borderColor: '#00a2ff',
                     backgroundColor: '#00a2ff',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Vung Tau',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#ca4a3d',
+                    backgroundColor: '#ca4a3d',
                     fill: false,
                     tension: 0,
                 },
@@ -137,42 +137,66 @@
         },
     });
 
-    const objName = ['// Tien Object Name goes here'];
+    const objName = [
+        'vn_pph/HSVN',
+        'vn_pph/CHANGCHUN',
+        'vn_pph/CHANGCHUN2',
+        'vn_pph/LONGTHANH',
+        'vn_pph/RACHGIA',
+        'vn_pph/VUNGTAU'
+    ];
 
     function updateChart() {
         window.frameElement._map.do.mhp.metric(objName, function (res) {
-            let chartData = ['// Tien New Chart Data goes here'];
-
             // For drawing the lines
-            let hsvn = [
-                chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
-                chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
-            ];
-            let changchun2 = [
-                chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
-                chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
-            ];
-            let longthanh = [
-                chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
-                chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
-            ];
-            let vungtau = [
-                chartData[3][0], chartData[3][1], chartData[3][2], chartData[3][3],
-                chartData[3][4], chartData[3][5], chartData[3][6], chartData[3][7]
-            ];
-            let changchun = [
-                chartData[4][0], chartData[4][1], chartData[4][2], chartData[4][3],
-                chartData[4][4], chartData[4][5], chartData[4][6], chartData[4][7]
-            ];
-            let rachgia = [
-                chartData[5][0], chartData[5][1], chartData[5][2], chartData[5][3],
-                chartData[5][4], chartData[5][5], chartData[5][6], chartData[5][7]
-            ];
+            let changchun = [], changchun2 = [], hsvn = [],
+                longthanh = [], rachgia = [], vungtau = [];
+
+            objName.forEach(name => {
+                switch (res[name].value.metric.COMPANYCODE) {
+                    case 'HSVN':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            hsvn.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        hsvn.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'CHANGCHUN':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            changchun.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        changchun.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'CHANGCHUN2':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            changchun2.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        changchun2.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'LONGTHANH':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            longthanh.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        longthanh.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'RACHGIA':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            rachgia.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        rachgia.push(res[name].value.metric['TODAY']);
+                        break;
+                    case 'VUNGTAU':
+                        for (let i = dayLabels.length - 1; i >= 1; --i) {
+                            vungtau.push(res[name].value.metric[`DAY_${i}`]);
+                        }
+                        vungtau.push(res[name].value.metric['TODAY']);
+                        break;
+                }
+            });
 
             let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(
                 false,
-                hsvn, changchun2, longthanh,
-                vungtau, changchun, rachgia
+                changchun, changchun2, hsvn,
+                longthanh, rachgia, vungtau
             );
 
             myChart.data = {
@@ -185,6 +209,16 @@
                         pointStyle: 'rect',
                         borderColor: '#807fff',
                         backgroundColor: '#807fff',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: changchun,
+                        label: 'Chang Chun',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#52d8d8',
+                        backgroundColor: '#52d8d8',
                         fill: false,
                         tension: 0,
                     },
@@ -209,32 +243,22 @@
                         tension: 0,
                     },
                     {
-                        data: vungtau,
-                        label: 'Vung Tau',
-                        pointRadius: 0.5,
-                        pointStyle: 'rect',
-                        borderColor: '#ca4a3d',
-                        backgroundColor: '#ca4a3d',
-                        fill: false,
-                        tension: 0,
-                    },
-                    {
-                        data: changchun,
-                        label: 'Chang Chun',
-                        pointRadius: 0.5,
-                        pointStyle: 'rect',
-                        borderColor: '#52d8d8',
-                        backgroundColor: '#52d8d8',
-                        fill: false,
-                        tension: 0,
-                    },
-                    {
                         data: rachgia,
                         label: 'Rach Gia',
                         pointRadius: 0.5,
                         pointStyle: 'rect',
                         borderColor: '#00a2ff',
                         backgroundColor: '#00a2ff',
+                        fill: false,
+                        tension: 0,
+                    },
+                    {
+                        data: vungtau,
+                        label: 'Vung Tau',
+                        pointRadius: 0.5,
+                        pointStyle: 'rect',
+                        borderColor: '#ca4a3d',
+                        backgroundColor: '#ca4a3d',
                         fill: false,
                         tension: 0,
                     },

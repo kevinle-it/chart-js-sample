@@ -31,7 +31,7 @@
     });
 
     function createNewLegendAndAttach(chartInstance, legendOpts) {
-        var legend = new Chart.NewLegend({
+        let legend = new Chart.NewLegend({
             ctx: chartInstance.chart.ctx,
             options: legendOpts,
             chart: chartInstance
@@ -49,14 +49,14 @@
     // Register the legend plugin
     Chart.plugins.register({
         beforeInit: function(chartInstance) {
-            var legendOpts = chartInstance.options.legend;
+            let legendOpts = chartInstance.options.legend;
 
             if (legendOpts) {
                 createNewLegendAndAttach(chartInstance, legendOpts);
             }
         },
         beforeUpdate: function(chartInstance) {
-            var legendOpts = chartInstance.options.legend;
+            let legendOpts = chartInstance.options.legend;
 
             if (legendOpts) {
                 legendOpts = Chart.helpers.configMerge(Chart.defaults.global.legend, legendOpts);
@@ -72,7 +72,7 @@
             }
         },
         afterEvent: function(chartInstance, e) {
-            var legend = chartInstance.newLegend;
+            let legend = chartInstance.newLegend;
             if (legend) {
                 legend.handleEvent(e);
             }
@@ -80,58 +80,111 @@
     });
     // --------------------END--------------------
 
-    updateChart();
+    // Labels along the x-axis
+    const dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'China',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#807fff',
+                    backgroundColor: '#807fff',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Vietnam',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#f9f6f7',
+                    backgroundColor: '#f9f6f7',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Indonesia',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#54cc8e',
+                    backgroundColor: '#54cc8e',
+                    fill: false,
+                    tension: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            legend: {
+                labels: {
+                    usePointStyle: true,
+                    fontColor: '#777c80',
+                },
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        minRotation: 0,
+                        maxRotation: 90,
+                        autoSkip: false,
+                        fontColor: '#fff',
+                        padding: 10,
+                    },
+                    gridLines: {
+                        display: false,
+                    },
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: '#454749',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        fontColor: '#fff',
+                        padding: 10,
+                        callback: function (value, index, values) {
+                            return value + '%';
+                        },
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
-            obj.ObjectName = ['global_eff_data'];
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "global_eff_data" ]}',
-                success: function (data) {
-                    var chartData = data.Result.global_eff_data.value.metric_1;
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let chartData = ['// Tien New Chart Data goes here'];
 
-                    // Our labels along the x-axis
-                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+            // For drawing the lines
+            let China = [
+                chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
+                chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
+            ];
+            let Vietnam = [
+                chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
+                chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
+            ];
+            let Indonesia = [
+                chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
+                chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
+            ];
 
-                    // For drawing the lines
-                    var China = [
-                        chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
-                        chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
-                    ];
-                    var Vietnam = [
-                        chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
-                        chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
-                    ];
-                    var Indonesia = [
-                        chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
-                        chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
-                    ];
+            let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, China, Vietnam, Indonesia);
 
-                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(false, China, Vietnam, Indonesia);
+            let stepSize = computeStepSize(minMaxTickYAxesConfig.max);
 
-                    var stepSize = computeStepSize(minMaxTickYAxesConfig.max);
-
-                    buildNewLineChart(dayLabels, China, Vietnam, Indonesia, minMaxTickYAxesConfig, stepSize);
-                },
-                contentType: "application/json",
-                dataType: 'json'
-            });
-        });
-    }
-
-    function buildNewLineChart(dayLabels, China, Vietnam, Indonesia, minMaxTickYAxesConfig, stepSize) {
-        var ctx = document.getElementById('myChart');
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
+            myChart.data = {
                 labels: dayLabels,
                 datasets: [
                     {
@@ -165,56 +218,46 @@
                         tension: 0,
                     },
                 ],
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    labels: {
-                        usePointStyle: true,
-                        fontColor: '#777c80',
+            };
+
+            myChart.options.scales.yAxes = [{
+                gridLines: {
+                    color: '#454749',
+                    drawBorder: false,
+                },
+                ticks: {
+                    min: minMaxTickYAxesConfig.min,
+                    max: minMaxTickYAxesConfig.max,
+                    stepSize: stepSize,
+                    fontColor: '#fff',
+                    padding: 10,
+                    callback: function (value, index, values) {
+                        return value + '%';
                     },
                 },
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            minRotation: 0,
-                            maxRotation: 90,
-                            autoSkip: false,
-                            fontColor: '#fff',
-                            padding: 10,
-                        },
-                        gridLines: {
-                            display: false,
-                        },
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            color: '#454749',
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            min: minMaxTickYAxesConfig.min,
-                            max: minMaxTickYAxesConfig.max,
-                            stepSize: stepSize,
-                            fontColor: '#fff',
-                            padding: 10,
-                            callback: function (value, index, values) {
-                                return value + '%';
-                            },
-                        },
-                    }],
-                },
-            },
+            }];
+
+            myChart.update();
         });
     }
+
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
 
     // Round up to 0.5 if num < 0.5; Round up to 1.0 if num >= 0.5
     // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
     // 1 -> 5; 3 -> 5; 5 -> 10; 49 -> 50; 50 -> 100;
     // 100 -> 150; 115 -> 150; 140 -> 150; 149 -> 150; 150 -> 200; 170 -> 200;
     // 230 -> 250; 249 -> 250; 250 -> 300; 265 -> 300;
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -224,14 +267,14 @@
             }
         }));
 
-        var numOfDigits = 1;
+        let numOfDigits = 1;
         if (max % 1 === 0) {
             numOfDigits = max.toString().length;
         } else {
             numOfDigits = Math.round(max).toString().length;
         }
 
-        var factor = 1;
+        let factor = 1;
         switch (numOfDigits) {
             case 1:
                 factor = 10;
@@ -240,24 +283,24 @@
                 factor = 100;
                 break;
             default:
-                for (var i = 1; i < numOfDigits; ++i) {
+                for (let i = 1; i < numOfDigits; ++i) {
                     factor *= 10;
                 }
                 break;
         }
 
-        var decimalMax = max / factor;
-        var temp = Math.floor(decimalMax);
-        var fractionalPartOfDecimalMax = decimalMax - temp;
+        let decimalMax = max / factor;
+        let temp = Math.floor(decimalMax);
+        let fractionalPartOfDecimalMax = decimalMax - temp;
 
-        var maxTickOnYAxes = 0;
+        let maxTickOnYAxes = 0;
         if (fractionalPartOfDecimalMax < 0.5) {
             maxTickOnYAxes = (Math.ceil(decimalMax * 2) / 2) * factor;
         } else {
             maxTickOnYAxes = Math.round(decimalMax) * factor;
         }
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: min,
                 max: maxTickOnYAxes,

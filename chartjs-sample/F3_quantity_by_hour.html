@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Hwaseung Vina Factory 3 Quantity by Hour Chart</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
     <style>
@@ -15,68 +15,103 @@
 <body>
 <canvas id="myChart"></canvas>
 <script>
-    updateChart();
+    // Labels along the x-axis
+    const timeLabels = [
+        "8:30", "9:30", "10:30", "11:30", "12:30", "13:30", "14:30",
+        "15:30", "16:30", "17:30", "18:30", "19:30", "20:30"
+    ];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: [{
+                label: 'quantity',
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                pointRadius: 0.5,
+                borderColor: '#ed4940',
+                backgroundColor: '#ed494040',
+                pointBorderColor: '#ed4940',
+                pointBackgroundColor: '#ed4940',
+                tension: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            legend: {
+                display: false,
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    ticks: {
+                        maxRotation: 90,
+                        minRotation: 0,
+                        fontColor: '#fff',
+                        padding: 5,
+                    },
+                    time: {
+                        tooltipFormat: 'H:mm',
+                        unit: 'minute',
+                        stepSize: 60,
+                        displayFormats: {
+                            'minute': 'H:mm',
+                        },
+                    },
+                    gridLines: {
+                        display: false,
+                    },
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontColor: '#fff',
+                        padding: 10,
+                    },
+                    gridLines: {
+                        drawBorder: false,
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
-            obj.ObjectName = ['Fac3_Qty_By_Hour'];
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "Fac3_Qty_By_Hour" ]}',
-                success: function (data) {
-                    // Our labels along the x-axis
-                    var time = [
-                        "8:30", "9:30", "10:30", "11:30", "12:30", "13:30", "14:30",
-                        "15:30", "16:30", "17:30", "18:30", "19:30", "20:30"
-                    ];
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let dataResponse = ['// Tien Data Response from Server goes here'];
 
-                    // For drawing the line
-                    var chartData = [];
-                    data.Result.Fac3_Qty_By_Hour.value.metric_1.map((value, index) => {
-                        var item = {x: time[index], y: value};
-                        chartData.push(item);
-                    });
-                    // Remove trailing 0 (zero) data
-                    for (var i = chartData.length - 1; i >= 0; --i) {
-                        if (chartData[i].y === 0) {
-                            chartData.pop();
-                        } else {
-                            break;
-                        }
-                    }
-
-                    var minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, chartData.map(item => +item.y));
-
-                    buildNewLineChart(chartData, minMaxTicksYAxesConfig);
-                },
-                contentType: "application/json",
-                dataType: 'json',
+            // Tien Edit logic here to have chartData array for drawing Chart
+            // ---------- START ----------
+            let chartData = [];
+            dataResponse.map((value, index) => {
+                chartData.push({x: timeLabels[index], y: value});
             });
-        });
-    }
+            // Remove trailing 0 (zero) data
+            for (let i = chartData.length - 1; i >= 0; --i) {
+                if (chartData[i].y === 0) {
+                    chartData.pop();
+                } else {
+                    break;
+                }
+            }
+            // ---------- END ----------
 
-    function buildNewLineChart(data, minMaxTicksYAxesConfig) {
-        // Our labels along the x-axis
-        var labels = data.map(item => moment(item.x, 'H:mm'));
+            let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, chartData.map(item => +item.y));
 
-        // For drawing the line
-        var chartData = data.map(item => +item.y);
+            // Labels along the x-axis
+            let labels = chartData.map(item => moment(item.x, 'H:mm'));
 
-        let ctx = document.getElementById('myChart');
-        let myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
+            // For drawing the line
+            let dataToShow = chartData.map(item => +item.y);
+
+            myChart.data = {
                 labels: labels,
                 datasets: [{
                     label: 'quantity',
-                    data: chartData,
+                    data: dataToShow,
                     pointRadius: 0.5,
                     borderColor: '#ed4940',
                     backgroundColor: '#ed494040',
@@ -84,48 +119,33 @@
                     pointBackgroundColor: '#ed4940',
                     tension: 0,
                 }]
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    display: false,
+            };
+
+            myChart.options.scales.yAxes = [{
+                ticks: {
+                    min: minMaxTicksYAxesConfig.min,
+                    max: minMaxTicksYAxesConfig.max,
+                    fontColor: '#fff',
+                    padding: 10,
                 },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        ticks: {
-                            maxRotation: 90,
-                            minRotation: 0,
-                            fontColor: '#fff',
-                            padding: 5,
-                        },
-                        time: {
-                            tooltipFormat: 'H:mm',
-                            unit: 'minute',
-                            stepSize: 60,
-                            displayFormats: {
-                                'minute': 'H:mm',
-                            },
-                        },
-                        gridLines: {
-                            display: false,
-                        },
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            fontColor: '#fff',
-                            min: minMaxTicksYAxesConfig.min,
-                            max: minMaxTicksYAxesConfig.max,
-                            padding: 10,
-                        },
-                        gridLines: {
-                            drawBorder: false,
-                        },
-                    }],
+                gridLines: {
+                    drawBorder: false,
                 },
-            },
+            }];
+
+            myChart.update();
         });
     }
+
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
 
     // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
     // (1...9) -> (1...9) + 1
@@ -134,8 +154,8 @@
     // (1000...9999) -> (1000...9999) + 1000
     // (10000...99999) -> (10000...99999) + 1000
     // (100000...999999) -> (100000...999999) + 100000
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -144,14 +164,14 @@
                 max = value;
             }
         }));
-        var numOfDigits = max.toString().length;
-        var factor = 1;
-        for (var i = 1; i < numOfDigits; ++i) {
+        let numOfDigits = max.toString().length;
+        let factor = 1;
+        for (let i = 1; i < numOfDigits; ++i) {
             factor *= 10;
         }
-        var maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+        let maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 100,000 + 200,000
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: min,
                 max: maxTickOnYAxes,

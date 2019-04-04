@@ -15,50 +15,107 @@
 <body>
 <canvas id="myChart"></canvas>
 <script>
-    updateChart();
+    // Labels along the x-axis
+    const dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [{
+                label: 'balance',
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
+                borderColor: '#ffda49',
+                borderWidth: 5,
+                pointRadius: 8,
+                pointBorderWidth: 3.5,
+                pointBackgroundColor: '#ffda49',
+                pointBorderColor: '#fff',
+                fill: false,
+                tension: 0,
+            }],
+        },
+        options: {
+            responsive: true,
+            legend: {
+                display: false,
+            },
+            tooltips: {
+                callbacks: {
+                    title: function (tooltipItem, data) {
+                        return "";
+                    },
+                    label: function (tooltipItem, data) {
+                        let currentYValue = tooltipItem.yLabel;
+                        return addThousandsDelimiterTo(currentYValue, ',');
+                    },
+                },
+                backgroundColor: '#f1493b',
+                bodyFontColor: '#fff',
+                bodyFontSize: 17,
+                xPadding: 10,
+                yPadding: 10,
+                caretPadding: 10,
+                displayColors: false,
+                xAlign: 'center',
+                yAlign: 'bottom',
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        minRotation: 0,
+                        maxRotation: 90,
+                        autoSkip: false,
+                        fontColor: '#fff',
+                        padding: 10,
+                    },
+                    gridLines: {
+                        display: false,
+                        color: '#525559',
+                    },
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontColor: 'rgb(208, 209, 210)',
+                        padding: 10,
+                        callback: function (value, index, values) {
+                            if (value < 1000) {
+                                return value;
+                            } else if (value < 1000000) {
+                                return value / 1000 + 'K';
+                            } else if (value < 1000000000) {
+                                return value / 1000000 + 'M';
+                            }
+                            return value / 1000000000 + 'B';
+                        },
+                    },
+                    gridLines: {
+                        color: '#525559',
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
-            obj.ObjectName = ['FacDS_Balances'];
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "FacDS_Balances" ]}',
-                success: function (data) {
-                    var chartData = data.Result.FacDS_Balances.value.metric_1;
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let chartData = ['// Tien New Chart Data goes here'];
 
-                    // Our labels along the x-axis
-                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+            // For drawing the line
+            let balances = [];
+            for (let i = chartData.length - 1; i >= 0; --i) {
+                balances.push(chartData[i]);
+            }
 
-                    // For drawing the line
-                    var balances = [];
-                    for (var i = chartData.length - 1; i >= 0; --i) {
-                        balances.push(chartData[i]);
-                    }
+            let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(true, balances);
 
-                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(true, balances);
+            let stepSize = computeStepSize(minMaxTickYAxesConfig);
 
-                    var stepSize = computeStepSize(minMaxTickYAxesConfig);
-
-                    buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig, stepSize);
-                },
-                contentType: "application/json",
-                dataType: 'json',
-            });
-        });
-    }
-
-    function buildNewLineChart(dayLabels, balances, minMaxTickYAxesConfig, stepSize) {
-        var ctx = document.getElementById('myChart');
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
+            myChart.data = {
                 labels: dayLabels,
                 datasets: [{
                     label: 'balance',
@@ -72,72 +129,44 @@
                     fill: false,
                     tension: 0,
                 }],
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    display: false,
-                },
-                tooltips: {
-                    callbacks: {
-                        title: function (tooltipItem, data) {
-                            return "";
-                        },
-                        label: function (tooltipItem, data) {
-                            var currentYValue = tooltipItem.yLabel;
-                            return addThousandsSeparatorTo(currentYValue, ',');
-                        },
+            };
+
+            myChart.options.scales.yAxes = [{
+                ticks: {
+                    min: minMaxTickYAxesConfig.min,
+                    max: minMaxTickYAxesConfig.max,
+                    stepSize: stepSize,
+                    fontColor: 'rgb(208, 209, 210)',
+                    padding: 10,
+                    callback: function (value, index, values) {
+                        if (value < 1000) {
+                            return value;
+                        } else if (value < 1000000) {
+                            return value / 1000 + 'K';
+                        } else if (value < 1000000000) {
+                            return value / 1000000 + 'M';
+                        }
+                        return value / 1000000000 + 'B';
                     },
-                    backgroundColor: '#f1493b',
-                    bodyFontColor: '#fff',
-                    bodyFontSize: 17,
-                    xPadding: 10,
-                    yPadding: 10,
-                    caretPadding: 10,
-                    displayColors: false,
-                    xAlign: 'center',
-                    yAlign: 'bottom',
                 },
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            minRotation: 0,
-                            maxRotation: 90,
-                            autoSkip: false,
-                            fontColor: '#fff',
-                            padding: 10,
-                        },
-                        gridLines: {
-                            display: false,
-                            color: '#525559',
-                        },
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            min: minMaxTickYAxesConfig.min,
-                            max: minMaxTickYAxesConfig.max,
-                            stepSize: stepSize,
-                            fontColor: 'rgb(208, 209, 210)',
-                            padding: 10,
-                            callback: function (value, index, values) {
-                                if (value < 1000) {
-                                    return value;
-                                } else if (value < 1000000) {
-                                    return value / 1000 + 'K';
-                                } else if (value < 1000000000) {
-                                    return value / 1000000 + 'M';
-                                }
-                                return value / 1000000000 + 'B';
-                            },
-                        },
-                        gridLines: {
-                            color: '#525559',
-                        },
-                    }],
+                gridLines: {
+                    color: '#525559',
                 },
-            },
+            }];
+
+            myChart.update();
         });
     }
+
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
 
     // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
     // (1...9) -> (1...9) + 1
@@ -146,8 +175,8 @@
     // (1000...9999) -> (1000...9999) + 1000
     // (10000...99999) -> (10000...99999) + 1000
     // (100000...999999) -> (100000...999999) + 100000
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -157,35 +186,35 @@
             }
         }));
         // Max Tick
-        var numOfDigitsMax = 1;
+        let numOfDigitsMax = 1;
         if (max % 1 === 0) {
             numOfDigitsMax = max.toString().length;
         } else {
             numOfDigitsMax = Math.round(max).toString().length;
         }
 
-        var factorMax = 1;
-        for (var i = 1; i < numOfDigitsMax; ++i) {
+        let factorMax = 1;
+        for (let i = 1; i < numOfDigitsMax; ++i) {
             factorMax *= 10;
         }
 
         // Plus 5[0000..] then round up to 0.5
         // ----------Start----------
-        var maxTickOnYAxes = max + (factorMax / 2); // 258,628 -> 258,628 + 50,000
+        let maxTickOnYAxes = max + (factorMax / 2); // 258,628 -> 258,628 + 50,000
 
-        var numOfDigitsMaxTick = 1;
+        let numOfDigitsMaxTick = 1;
         if (maxTickOnYAxes % 1 === 0) {
             numOfDigitsMaxTick = maxTickOnYAxes.toString().length;
         } else {
             numOfDigitsMaxTick = Math.round(maxTickOnYAxes).toString().length;
         }
-        var factorMaxTick = 1;
-        for (i = 1; i < numOfDigitsMaxTick; ++i) {
+        let factorMaxTick = 1;
+        for (let i = 1; i < numOfDigitsMaxTick; ++i) {
             factorMaxTick *= 10;
         }
-        var decimalMaxTick = maxTickOnYAxes / factorMaxTick;
-        var temp = Math.floor(decimalMaxTick);
-        var fractionalPartOfDecimalMaxTick = decimalMaxTick - temp;
+        let decimalMaxTick = maxTickOnYAxes / factorMaxTick;
+        let temp = Math.floor(decimalMaxTick);
+        let fractionalPartOfDecimalMaxTick = decimalMaxTick - temp;
 
         if (fractionalPartOfDecimalMaxTick === 0) {
             maxTickOnYAxes = (Math.ceil((decimalMaxTick + 0.1) * 2) / 2) * factorMaxTick;
@@ -199,23 +228,23 @@
         // Min Tick
         // Minus 5[0000..] then round down to 0.5
         // ----------Start----------
-        var minTickOnYAxes = min - (factorMax / 2); // 76,679 -> 76,679 - 50,000 (max = 256,628; factorMax = 100000)
+        let minTickOnYAxes = min - (factorMax / 2); // 76,679 -> 76,679 - 50,000 (max = 256,628; factorMax = 100000)
 
 
-        var numOfDigitsMinTick = 1;
+        let numOfDigitsMinTick = 1;
         if (minTickOnYAxes % 1 === 0) {
             numOfDigitsMinTick = minTickOnYAxes.toString().length;
         } else {
             numOfDigitsMinTick = Math.round(minTickOnYAxes).toString().length;
         }
-        var factorMinTick = 1;
-        for (i = 1; i < numOfDigitsMinTick; ++i) {
+        let factorMinTick = 1;
+        for (let i = 1; i < numOfDigitsMinTick; ++i) {
             factorMinTick *= 10;
         }
 
-        var decimalMinTick = minTickOnYAxes / factorMinTick;
+        let decimalMinTick = minTickOnYAxes / factorMinTick;
         temp = Math.floor(decimalMinTick);
-        var fractionalPartOfDecimalMinTick = decimalMinTick - temp;
+        let fractionalPartOfDecimalMinTick = decimalMinTick - temp;
 
         if (fractionalPartOfDecimalMinTick > 0.5) {
             minTickOnYAxes = (Math.floor(decimalMinTick * 2) / 2) * factorMinTick;
@@ -223,7 +252,7 @@
             minTickOnYAxes = Math.round(decimalMinTick) * factorMinTick;
         }
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: minTickOnYAxes >= 0 ? minTickOnYAxes : 0,
                 max: maxTickOnYAxes,
@@ -236,14 +265,14 @@
     }
 
     // Example: 123456789 -> 123,456,789
-    function addThousandsSeparatorTo(number, separatorSign) {
-        var separatedNum = number.toString();
+    function addThousandsDelimiterTo(number, delimiterSymbol) {
+        let separatedNum = number.toString();
 
-        var count = 1;
-        for (var i = separatedNum.length - 1; i >= 0; --i) {
+        let count = 1;
+        for (let i = separatedNum.length - 1; i >= 0; --i) {
             if (count === 3 && i !== 0) {
                 count = 0;
-                separatedNum = separatedNum.slice(0, i) + separatorSign.toString() + separatedNum.slice(i);
+                separatedNum = separatedNum.slice(0, i) + delimiterSymbol.toString() + separatedNum.slice(i);
             }
             ++count;
         }
@@ -252,7 +281,7 @@
     }
 
     function computeStepSize(minMaxTickYAxesConfig) {
-        var diff = minMaxTickYAxesConfig.max - minMaxTickYAxesConfig.min;
+        let diff = minMaxTickYAxesConfig.max - minMaxTickYAxesConfig.min;
         return diff % 5 === 0 ? diff / 5 : diff / 10;
     }
 </script>

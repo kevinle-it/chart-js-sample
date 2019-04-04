@@ -20,80 +20,162 @@
     <canvas id="myChart" width="70%" height="45%"></canvas>
 </div>
 <script>
-    updateChart();
+    // Labels along the x-axis
+    const dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'HSVN',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#807fff',
+                    backgroundColor: '#807fff',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Chang Chun2',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#f9f6f7',
+                    backgroundColor: '#f9f6f7',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Long Thanh',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#54cc8e',
+                    backgroundColor: '#54cc8e',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Vung Tau',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#ca4a3d',
+                    backgroundColor: '#ca4a3d',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Chang Chun',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#52d8d8',
+                    backgroundColor: '#52d8d8',
+                    fill: false,
+                    tension: 0,
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Rach Gia',
+                    pointRadius: 0.5,
+                    pointStyle: 'rect',
+                    borderColor: '#00a2ff',
+                    backgroundColor: '#00a2ff',
+                    fill: false,
+                    tension: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            legend: {
+                display: false,
+                labels: {
+                    usePointStyle: true,
+                    fontColor: '#777c80',
+                },
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        minRotation: 0,
+                        maxRotation: 90,
+                        autoSkip: false,
+                        fontColor: '#fff',
+                    },
+                    gridLines: {
+                        display: false,
+                    },
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: '#454749',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        stepSize: 1,
+                        fontColor: '#fff',
+                        callback: function (value, index, values) {
+                            if (value < 1000) {
+                                return value;
+                            } else if (value < 1000000) {
+                                return value / 1000 + 'K';
+                            } else if (value < 1000000000) {
+                                return value / 1000000 + 'M';
+                            }
+                            return value / 1000000000 + 'B';
+                        },
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
-            obj.ObjectName = ['vn_pph'];
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID":"6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "vn_pph" ]}',
-                success: function (data) {
-                    var chartData = data.Result.vn_pph.value.metric_1;
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let chartData = ['// Tien New Chart Data goes here'];
 
-                    // Our labels along the x-axis
-                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+            // For drawing the lines
+            let hsvn = [
+                chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
+                chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
+            ];
+            let changchun2 = [
+                chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
+                chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
+            ];
+            let longthanh = [
+                chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
+                chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
+            ];
+            let vungtau = [
+                chartData[3][0], chartData[3][1], chartData[3][2], chartData[3][3],
+                chartData[3][4], chartData[3][5], chartData[3][6], chartData[3][7]
+            ];
+            let changchun = [
+                chartData[4][0], chartData[4][1], chartData[4][2], chartData[4][3],
+                chartData[4][4], chartData[4][5], chartData[4][6], chartData[4][7]
+            ];
+            let rachgia = [
+                chartData[5][0], chartData[5][1], chartData[5][2], chartData[5][3],
+                chartData[5][4], chartData[5][5], chartData[5][6], chartData[5][7]
+            ];
 
-                    // For drawing the lines
-                    var hsvn = [
-                        chartData[0][0], chartData[0][1], chartData[0][2], chartData[0][3],
-                        chartData[0][4], chartData[0][5], chartData[0][6], chartData[0][7]
-                    ];
-                    var changchun2 = [
-                        chartData[1][0], chartData[1][1], chartData[1][2], chartData[1][3],
-                        chartData[1][4], chartData[1][5], chartData[1][6], chartData[1][7]
-                    ];
-                    var longthanh = [
-                        chartData[2][0], chartData[2][1], chartData[2][2], chartData[2][3],
-                        chartData[2][4], chartData[2][5], chartData[2][6], chartData[2][7]
-                    ];
-                    var vungtau = [
-                        chartData[3][0], chartData[3][1], chartData[3][2], chartData[3][3],
-                        chartData[3][4], chartData[3][5], chartData[3][6], chartData[3][7]
-                    ];
-                    var changchun = [
-                        chartData[4][0], chartData[4][1], chartData[4][2], chartData[4][3],
-                        chartData[4][4], chartData[4][5], chartData[4][6], chartData[4][7]
-                    ];
-                    var rachgia = [
-                        chartData[5][0], chartData[5][1], chartData[5][2], chartData[5][3],
-                        chartData[5][4], chartData[5][5], chartData[5][6], chartData[5][7]
-                    ];
+            let minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(
+                false,
+                hsvn, changchun2, longthanh,
+                vungtau, changchun, rachgia
+            );
 
-                    var minMaxTickYAxesConfig = computeMinMaxTickOnYAxes(
-                        false,
-                        hsvn, changchun2, longthanh,
-                        vungtau, changchun, rachgia
-                    );
-
-                    buildNewLineChart(
-                        dayLabels,
-                        hsvn, changchun2, longthanh,
-                        vungtau, changchun, rachgia,
-                        minMaxTickYAxesConfig
-                    );
-                },
-                contentType: "application/json",
-                dataType: 'json',
-            });
-        });
-    }
-
-    function buildNewLineChart(dayLabels,
-                               hsvn, changchun2, longthanh,
-                               vungtau, changchun, rachgia,
-                               minMaxTickYAxesConfig) {
-        var ctx = document.getElementById('myChart');
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
+            myChart.data = {
                 labels: dayLabels,
                 datasets: [
                     {
@@ -157,57 +239,47 @@
                         tension: 0,
                     },
                 ],
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    display: false,
-                    labels: {
-                        usePointStyle: true,
-                        fontColor: '#777c80',
+            };
+
+            myChart.options.scales.yAxes = [{
+                gridLines: {
+                    color: '#454749',
+                    drawBorder: false,
+                },
+                ticks: {
+                    min: minMaxTickYAxesConfig.min,
+                    max: minMaxTickYAxesConfig.max,
+                    stepSize: 1,
+                    fontColor: '#fff',
+                    callback: function (value, index, values) {
+                        if (value < 1000) {
+                            return value;
+                        } else if (value < 1000000) {
+                            return value / 1000 + 'K';
+                        } else if (value < 1000000000) {
+                            return value / 1000000 + 'M';
+                        }
+                        return value / 1000000000 + 'B';
                     },
                 },
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            minRotation: 0,
-                            maxRotation: 90,
-                            autoSkip: false,
-                            fontColor: '#fff',
-                        },
-                        gridLines: {
-                            display: false,
-                        },
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            color: '#454749',
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            min: minMaxTickYAxesConfig.min,
-                            max: minMaxTickYAxesConfig.max,
-                            stepSize: 1,
-                            fontColor: '#fff',
-                            callback: function (value, index, values) {
-                                if (value < 1000) {
-                                    return value;
-                                } else if (value < 1000000) {
-                                    return value / 1000 + 'K';
-                                } else if (value < 1000000000) {
-                                    return value / 1000000 + 'M';
-                                }
-                                return value / 1000000000 + 'B';
-                            },
-                        },
-                    }],
-                },
-            },
+            }];
+
+            myChart.update();
         });
     }
 
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
+
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -217,9 +289,9 @@
             }
         }));
 
-        var maxTickOnYAxes = Math.ceil(max) + 1;
+        let maxTickOnYAxes = Math.ceil(max) + 1;
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: min,
                 max: maxTickOnYAxes,

@@ -14,52 +14,92 @@
 <body>
 <canvas id="myChart"></canvas>
 <script>
-    updateChart();
+    // Labels along the x-axis
+    const dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Actual',
+                    pointRadius: 0.5,
+                    borderColor: '#ca4a3d',
+                    backgroundColor: '#ca4a3d',
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    label: 'Target',
+                    pointRadius: 0.5,
+                    borderColor: '#fff',
+                    backgroundColor: '#fff',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            legend: {
+                display: false,
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        maxRotation: 90,
+                        minRotation: 0,
+                        fontColor: '#fff',
+                        padding: 10,
+                    },
+                    gridLines: {
+                        display: false,
+                    },
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: '#fff',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        fontColor: '#fff',
+                        padding: 10,
+                        callback: function (value, index, values) {
+                            if (value < 1000) {
+                                return value;
+                            } else if (value < 1000000) {
+                                return value / 1000 + 'K';
+                            } else if (value < 1000000000) {
+                                return value / 1000000 + 'M';
+                            }
+                            return value / 1000000000 + 'B';
+                        },
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59',
-                obj.ObjectName = ['Global_Pro_T_A']
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "Global_Pro_T_A" ]}',
-                success: function (data) {
-                    var chartData = data.Result.Global_Pro_T_A.value.metric_1;
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let chartData = ['// Tien New Chart Data goes here'];
 
-                    // Our labels along the x-axis
-                    var dayLabels = ['-7D', '-6D', '-5D', '-4D', '-3D', '-2D', '-1D', 'TODAY'];
+            // For drawing the lines
+            let target = [
+                chartData[0][7], chartData[0][6], chartData[0][5], chartData[0][4],
+                chartData[0][3], chartData[0][2], chartData[0][1], chartData[0][0]
+            ];
+            let actual = [
+                chartData[1][7], chartData[1][6], chartData[1][5], chartData[1][4],
+                chartData[1][3], chartData[1][2], chartData[1][1], chartData[1][0]
+            ];
 
-                    // For drawing the lines
-                    var target = [
-                        chartData[0][7], chartData[0][6], chartData[0][5], chartData[0][4],
-                        chartData[0][3], chartData[0][2], chartData[0][1], chartData[0][0]
-                    ];
-                    var actual = [
-                        chartData[1][7], chartData[1][6], chartData[1][5], chartData[1][4],
-                        chartData[1][3], chartData[1][2], chartData[1][1], chartData[1][0]
-                    ];
+            let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
 
-                    var minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
-
-                    buildNewStackAreaLineChart(dayLabels, target, actual, minMaxTicksYAxesConfig);
-                },
-                contentType: "application/json",
-                dataType: 'json'
-            });
-        });
-    }
-
-    function buildNewStackAreaLineChart(dayLabels, target, actual, minMaxTicksYAxesConfig) {
-        var ctx = document.getElementById('myChart');
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
+            myChart.data = {
                 labels: dayLabels,
                 datasets: [
                     {
@@ -77,50 +117,44 @@
                         backgroundColor: '#fff',
                     },
                 ],
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    display: false,
+            };
+
+            myChart.options.scales.yAxes = [{
+                gridLines: {
+                    color: '#fff',
+                    drawBorder: false,
                 },
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            maxRotation: 90,
-                            minRotation: 0,
-                            fontColor: '#fff',
-                            padding: 10,
-                        },
-                        gridLines: {
-                            display: false,
-                        },
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            color: '#fff',
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            min: minMaxTicksYAxesConfig.min,
-                            max: minMaxTicksYAxesConfig.max,
-                            fontColor: '#fff',
-                            padding: 10,
-                            callback: function (value, index, values) {
-                                if (value < 1000) {
-                                    return value;
-                                } else if (value < 1000000) {
-                                    return value / 1000 + 'K';
-                                } else if (value < 1000000000) {
-                                    return value / 1000000 + 'M';
-                                }
-                                return value / 1000000000 + 'B';
-                            },
-                        },
-                    }],
+                ticks: {
+                    min: minMaxTicksYAxesConfig.min,
+                    max: minMaxTicksYAxesConfig.max,
+                    fontColor: '#fff',
+                    padding: 10,
+                    callback: function (value, index, values) {
+                        if (value < 1000) {
+                            return value;
+                        } else if (value < 1000000) {
+                            return value / 1000 + 'K';
+                        } else if (value < 1000000000) {
+                            return value / 1000000 + 'M';
+                        }
+                        return value / 1000000000 + 'B';
+                    },
                 },
-            },
+            }];
+
+            myChart.update();
         });
     }
+
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
 
     // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
     // (1...9) -> (1...9) + 1
@@ -129,8 +163,8 @@
     // (1000...9999) -> (1000...9999) + 1000
     // (10000...99999) -> (10000...99999) + 1000
     // (100000...999999) -> (100000...999999) + 100000
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -139,14 +173,14 @@
                 max = value;
             }
         }));
-        var numOfDigits = max.toString().length;
-        var factor = 1;
-        for (var i = 1; i < numOfDigits; ++i) {
+        let numOfDigits = max.toString().length;
+        let factor = 1;
+        for (let i = 1; i < numOfDigits; ++i) {
             factor *= 10;
         }
-        var maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+        let maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: min,
                 max: maxTickOnYAxes,

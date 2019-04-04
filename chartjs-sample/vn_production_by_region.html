@@ -14,62 +14,112 @@
 <body>
 <canvas id="myChart" width="70%" height="45%"></canvas>
 <script>
-    updateChart();
+    // Our labels along the x-axis
+    const companyLabels = ['HSVN', 'CC1', 'CC2', 'LT', 'RG', 'VT'];
 
-    setInterval(function () {
-        updateChart();
-    }, 60000);
+    // Draw default chart
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        title: {
+            display: false,
+        },
+        data: {
+            labels: companyLabels,
+            datasets: [
+                {
+                    data: [0, 0, 0, 0, 0, 0],
+                    label: 'Target',
+                    borderColor: '#fff',
+                    backgroundColor: '#fff',
+                },
+                {
+                    data: [0, 0, 0, 0, 0, 0],
+                    label: 'Actual',
+                    borderColor: '#ca4a3d',
+                    backgroundColor: '#ca4a3d',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            legend: {
+                display: true,
+                labels: {
+                    fontColor: 'rgb(176, 175, 175)',
+                },
+            },
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        let currentYValue = tooltipItem.yLabel;
+                        return data.datasets[tooltipItem.datasetIndex].label + ': '
+                            + addThousandsDelimiterTo(currentYValue, ',');  // "label: 123,456"
+                    },
+                },
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: {
+                        display: false,
+                    },
+                    ticks: {
+                        maxRotation: 90,
+                        minRotation: 0,
+                        fontColor: 'rgb(176, 175, 175)',
+                        padding: 5,
+                    },
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: '#454749',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        fontColor: '#fff',
+                        padding: 10,
+                        callback: function (value, index, values) {
+                            if (value < 1000) {
+                                return value;
+                            } else if (value < 1000000) {
+                                return value / 1000 + 'K';
+                            } else if (value < 1000000000) {
+                                return value / 1000000 + 'M';
+                            }
+                            return value / 1000000000 + 'B';
+                        },
+                    },
+                }],
+            },
+        },
+    });
+
+    const objName = ['// Tien Object Name goes here'];
 
     function updateChart() {
-        $(document).ready(function () {
-            var obj = new Object();
-            obj.SiteID = '6257c91aeca6b8efd08a3cc8bd027c59';
-            obj.ObjectName = ['production_by_re_vn'];
-            $.ajax({
-                type: 'POST',
-                url: 'http://smart.hsvina.com/proxy/Metric/Get',
-                data: '{"SiteID": "6257c91aeca6b8efd08a3cc8bd027c59", "ObjectName": [ "production_by_re_vn" ]}',
-                success: function (data) {
-                    var chartData = data.Result.production_by_re_vn.value.metric_1;
+        window.frameElement._map.do.mhp.metric(objName, function (res) {
+            let chartData = ['// Tien New Chart Data goes here'];
 
-                    // Our labels along the x-axis
-                    var companyLabels = ['HSVN', 'CC1', 'CC2', 'LT', 'RG', 'VT'];
-
-                    // For drawing the bars
-                    var target = [], actual = [];
-                    for (var i = 0; i < chartData.length; ++i) {
-                        switch (i) {
-                            case 0:
-                                for (var j = 0; j < chartData[i].length; ++j) {
-                                    target.push(chartData[i][j] === null ? 0 : chartData[i][j]);
-                                }
-                                break;
-                            case 1:
-                                for (var k = 0; k < chartData[i].length; ++k) {
-                                    actual.push(chartData[i][k] === null ? 0 : chartData[i][k]);
-                                }
-                                break;
+            // For drawing the bars
+            let target = [], actual = [];
+            for (let i = 0; i < chartData.length; ++i) {
+                switch (i) {
+                    case 0:
+                        for (let j = 0; j < chartData[i].length; ++j) {
+                            target.push(chartData[i][j] === null ? 0 : chartData[i][j]);
                         }
-                    }
+                        break;
+                    case 1:
+                        for (let k = 0; k < chartData[i].length; ++k) {
+                            actual.push(chartData[i][k] === null ? 0 : chartData[i][k]);
+                        }
+                        break;
+                }
+            }
 
-                    var minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
+            let minMaxTicksYAxesConfig = computeMinMaxTickOnYAxes(false, target, actual);
 
-                    buildNewBarChart(companyLabels, target, actual, minMaxTicksYAxesConfig);
-                },
-                contentType: "application/json",
-                dataType: 'json'
-            });
-        });
-    }
-
-    function buildNewBarChart(companyLabels, target, actual, minMaxTicksYAxesConfig) {
-        var ctx = document.getElementById('myChart');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            title: {
-                display: false,
-            },
-            data: {
+            myChart.data = {
                 labels: companyLabels,
                 datasets: [
                     {
@@ -85,62 +135,44 @@
                         backgroundColor: '#ca4a3d',
                     },
                 ],
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    display: true,
-                    labels: {
-                        fontColor: 'rgb(176, 175, 175)',
+            };
+
+            myChart.options.scales.yAxes = [{
+                gridLines: {
+                    color: '#454749',
+                    drawBorder: false,
+                },
+                ticks: {
+                    min: minMaxTicksYAxesConfig.min,
+                    max: minMaxTicksYAxesConfig.max,
+                    fontColor: '#fff',
+                    padding: 10,
+                    callback: function (value, index, values) {
+                        if (value < 1000) {
+                            return value;
+                        } else if (value < 1000000) {
+                            return value / 1000 + 'K';
+                        } else if (value < 1000000000) {
+                            return value / 1000000 + 'M';
+                        }
+                        return value / 1000000000 + 'B';
                     },
                 },
-                tooltips: {
-                    callbacks: {
-                        label: function (tooltipItem, data) {
-                            var currentYValue = tooltipItem.yLabel;
-                            return data.datasets[tooltipItem.datasetIndex].label + ': '
-                                + addThousandsSeparatorTo(currentYValue, ',');  // "label: 123,456"
-                        },
-                    },
-                },
-                scales: {
-                    xAxes: [{
-                        gridLines: {
-                            display: false,
-                        },
-                        ticks: {
-                            maxRotation: 90,
-                            minRotation: 0,
-                            fontColor: 'rgb(176, 175, 175)',
-                            padding: 5,
-                        },
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            color: '#454749',
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            min: minMaxTicksYAxesConfig.min,
-                            max: minMaxTicksYAxesConfig.max,
-                            fontColor: '#fff',
-                            padding: 10,
-                            callback: function (value, index, values) {
-                                if (value < 1000) {
-                                    return value;
-                                } else if (value < 1000000) {
-                                    return value / 1000 + 'K';
-                                } else if (value < 1000000000) {
-                                    return value / 1000000 + 'M';
-                                }
-                                return value / 1000000000 + 'B';
-                            },
-                        },
-                    }],
-                },
-            },
+            }];
+
+            myChart.update();
         });
     }
+
+    window.addEventListener("message", function (e) {
+        updateChart();
+    });
+    document.addEventListener("DOMContentLoaded", function (e) {
+        updateChart();
+    });
+    setInterval(function () {
+        updateChart();
+    }, 60000);
 
     // Example: MAX_VALUE_IN_GRAPH -> MAX_TICK_ON_Y_AXES:
     // (1...9) -> (1...9) + 1
@@ -149,8 +181,8 @@
     // (1000...9999) -> (1000...9999) + 1000
     // (10000...99999) -> (10000...99999) + 1000
     // (100000...999999) -> (100000...999999) + 100000
-    function computeMinMaxTickOnYAxes(isComputeMinTick, ...arrays) {
-        var min = Number.MAX_SAFE_INTEGER, max = 0;
+    function computeMinMaxTickOnYAxes(shouldComputeMinTick, ...arrays) {
+        let min = Number.MAX_SAFE_INTEGER, max = 0;
         arrays.map(array => array.map(value => {
             if (value < min) {
                 min = value;
@@ -159,14 +191,14 @@
                 max = value;
             }
         }));
-        var numOfDigits = max.toString().length;
-        var factor = 1;
-        for (var i = 1; i < numOfDigits; ++i) {
+        let numOfDigits = max.toString().length;
+        let factor = 1;
+        for (let i = 1; i < numOfDigits; ++i) {
             factor *= 10;
         }
-        var maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
+        let maxTickOnYAxes = factor + Math.floor(max / factor) * factor;    // 258,679 -> 200,000 + 100,000
 
-        if (isComputeMinTick) {
+        if (shouldComputeMinTick) {
             return {
                 min: min,
                 max: maxTickOnYAxes,
@@ -179,14 +211,14 @@
     }
 
     // Example: 123456789 -> 123,456,789
-    function addThousandsSeparatorTo(number, separatorSign) {
-        var separatedNum = number.toString();
+    function addThousandsDelimiterTo(number, delimiterSymbol) {
+        let separatedNum = number.toString();
 
-        var count = 1;
-        for (var i = separatedNum.length - 1; i >= 0 ; --i) {
+        let count = 1;
+        for (let i = separatedNum.length - 1; i >= 0 ; --i) {
             if (count === 3 && i !== 0) {
                 count = 0;
-                separatedNum = separatedNum.slice(0, i) + separatorSign.toString() + separatedNum.slice(i);
+                separatedNum = separatedNum.slice(0, i) + delimiterSymbol.toString() + separatedNum.slice(i);
             }
             ++count;
         }
